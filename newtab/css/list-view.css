@@ -1,0 +1,100 @@
+.list-view {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.task-table {
+  width: 100%;
+}
+
+.task-table thead {
+  background: var(--bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.task-table th {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  text-align: left;
+  border-bottom: 1px solid var(--border-primary);
+  white-space: nowrap;
+}
+
+.task-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.task-table th.sortable:hover {
+  color: var(--text-primary);
+}
+
+.task-table td {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-sm);
+  border-bottom: 1px solid var(--border-primary);
+  vertical-align: middle;
+}
+
+.task-row {
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.task-row:hover {
+  background: var(--bg-secondary);
+}
+
+.cell-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 500;
+  max-width: 400px;
+}
+
+.cell-title span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell-date {
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+td.overdue {
+  color: var(--priority-critical);
+  font-weight: 500;
+}
+
+.status-select {
+  padding: 2px var(--space-sm);
+  font-size: var(--text-xs);
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.status-select.status-backlog { background: rgba(107, 114, 128, 0.15); color: var(--status-backlog); }
+.status-select.status-todo { background: rgba(59, 130, 246, 0.15); color: var(--status-todo); }
+.status-select.status-in-progress { background: rgba(99, 102, 241, 0.15); color: var(--status-in-progress); }
+.status-select.status-review { background: rgba(168, 85, 247, 0.15); color: var(--status-review); }
+.status-select.status-done { background: rgba(34, 197, 94, 0.15); color: var(--status-done); }
+
+.col-priority { width: 100px; }
+.col-status { width: 140px; }
+.col-due { width: 120px; }
+.col-created { width: 120px; }
+.col-actions { width: 40px; }
