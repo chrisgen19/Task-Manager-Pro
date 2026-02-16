@@ -1,5 +1,5 @@
 import { bus, Events } from '../event-bus.js';
-import { createTask, updateTask, deleteTask, getTaskById, PRIORITIES, STATUSES } from '../task-model.js';
+import { createTask, updateTask, deleteTask, getTaskById } from '../task-model.js';
 
 let editingTaskId = null;
 
@@ -9,6 +9,38 @@ export function initTaskModal() {
   const titleEl = document.getElementById('modal-title');
   const closeBtn = overlay.querySelector('.modal-close');
   const cancelBtn = overlay.querySelector('.modal-cancel');
+
+  const textarea = document.getElementById('task-description');
+  const preview = document.getElementById('desc-preview');
+  const previewText = preview.querySelector('.desc-preview-text');
+
+  function showDescPreview(text) {
+    textarea.hidden = true;
+    preview.hidden = false;
+    if (text) {
+      previewText.textContent = text;
+      preview.classList.remove('desc-preview-empty');
+    } else {
+      previewText.textContent = 'No description';
+      preview.classList.add('desc-preview-empty');
+    }
+  }
+
+  function showDescEditor() {
+    preview.hidden = true;
+    textarea.hidden = false;
+    textarea.focus();
+  }
+
+  // Click preview to enter edit mode
+  preview.addEventListener('click', showDescEditor);
+
+  // Blur textarea to return to preview (only in edit-task mode)
+  textarea.addEventListener('blur', () => {
+    if (editingTaskId) {
+      showDescPreview(textarea.value.trim());
+    }
+  });
 
   function openModal(data = {}) {
     editingTaskId = data.id || null;
@@ -24,15 +56,17 @@ export function initTaskModal() {
       form.status.value = task.status;
       form.dueDate.value = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
 
-      // Show delete button for editing
+      showDescPreview(task.description || '');
       addDeleteButton();
     } else {
       form.reset();
-      // Pre-fill status if provided (e.g., from kanban column)
+      // New task: show textarea directly
+      preview.hidden = true;
+      textarea.hidden = false;
+
       if (data.status !== undefined) {
         form.status.value = data.status;
       }
-      // Pre-fill due date if provided (e.g., from calendar click)
       if (data.dueDate) {
         form.dueDate.value = data.dueDate;
       }
@@ -47,6 +81,8 @@ export function initTaskModal() {
     overlay.hidden = true;
     editingTaskId = null;
     form.reset();
+    preview.hidden = true;
+    textarea.hidden = false;
     removeDeleteButton();
   }
 
@@ -94,7 +130,7 @@ export function initTaskModal() {
     closeModal();
   });
 
-  // Ctrl+Enter to save
+  // Ctrl+Enter to save (works from both textarea and preview)
   form.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key === 'Enter') {
       e.preventDefault();
@@ -105,7 +141,6 @@ export function initTaskModal() {
   closeBtn.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
 
-  // Click outside to close
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeModal();
   });
