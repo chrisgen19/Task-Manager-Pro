@@ -1,6 +1,75 @@
 import { bus, Events } from '../event-bus.js';
 import { createTask, updateTask, deleteTask, getTaskById } from '../task-model.js';
 
+const ALLOWED_TAGS = new Set([
+  'b', 'strong', 'i', 'em', 'u', 's', 'strike', 'del',
+  'p', 'br', 'div', 'span',
+  'ul', 'ol', 'li',
+  'h1', 'h2', 'h3', 'h4',
+  'a',
+  'code', 'pre', 'blockquote',
+  'table', 'thead', 'tbody', 'tr', 'th', 'td',
+  'hr', 'img',
+]);
+
+const ALLOWED_ATTRS = {
+  a: ['href', 'target', 'rel'],
+  img: ['src', 'alt', 'width', 'height'],
+  td: ['colspan', 'rowspan'],
+  th: ['colspan', 'rowspan'],
+};
+
+function sanitizeHtml(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  sanitizeNode(doc.body);
+  return doc.body.innerHTML;
+}
+
+function sanitizeNode(node) {
+  const children = [...node.childNodes];
+  for (const child of children) {
+    if (child.nodeType === Node.TEXT_NODE) continue;
+
+    if (child.nodeType === Node.ELEMENT_NODE) {
+      const tag = child.tagName.toLowerCase();
+
+      if (!ALLOWED_TAGS.has(tag)) {
+        // Unwrap: keep children, remove the tag itself
+        while (child.firstChild) {
+          node.insertBefore(child.firstChild, child);
+        }
+        node.removeChild(child);
+        continue;
+      }
+
+      // Strip disallowed attributes
+      const allowed = ALLOWED_ATTRS[tag] || [];
+      const attrs = [...child.attributes];
+      for (const attr of attrs) {
+        if (!allowed.includes(attr.name)) {
+          child.removeAttribute(attr.name);
+        }
+      }
+
+      // Force links to open in new tab
+      if (tag === 'a') {
+        child.setAttribute('target', '_blank');
+        child.setAttribute('rel', 'noopener');
+      }
+
+      sanitizeNode(child);
+    } else {
+      // Remove comments, processing instructions, etc.
+      node.removeChild(child);
+    }
+  }
+}
+
+function stripHtmlToText(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  return doc.body.textContent || '';
+}
+
 let editingTaskId = null;
 
 export function initTaskModal() {
@@ -10,15 +79,37 @@ export function initTaskModal() {
   const closeBtn = overlay.querySelector('.modal-close');
   const cancelBtn = overlay.querySelector('.modal-cancel');
 
-  const textarea = document.getElementById('task-description');
+  const editor = document.getElementById('task-description');
   const preview = document.getElementById('desc-preview');
   const previewText = preview.querySelector('.desc-preview-text');
 
-  function showDescPreview(text) {
-    textarea.hidden = true;
+  // Sanitize on paste
+  editor.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const html = e.clipboardData.getData('text/html');
+    const plain = e.clipboardData.getData('text/plain');
+
+    if (html) {
+      const clean = sanitizeHtml(html);
+      document.execCommand('insertHTML', false, clean);
+    } else if (plain) {
+      document.execCommand('insertText', false, plain);
+    }
+  });
+
+  function getEditorContent() {
+    return editor.innerHTML.trim() === '<br>' ? '' : editor.innerHTML.trim();
+  }
+
+  function setEditorContent(html) {
+    editor.innerHTML = html || '';
+  }
+
+  function showDescPreview(html) {
+    editor.hidden = true;
     preview.hidden = false;
-    if (text) {
-      previewText.textContent = text;
+    if (html && stripHtmlToText(html).trim()) {
+      previewText.innerHTML = sanitizeHtml(html);
       preview.classList.remove('desc-preview-empty');
     } else {
       previewText.textContent = 'No description';
@@ -28,17 +119,15 @@ export function initTaskModal() {
 
   function showDescEditor() {
     preview.hidden = true;
-    textarea.hidden = false;
-    textarea.focus();
+    editor.hidden = false;
+    editor.focus();
   }
 
-  // Click preview to enter edit mode
   preview.addEventListener('click', showDescEditor);
 
-  // Blur textarea to return to preview (only in edit-task mode)
-  textarea.addEventListener('blur', () => {
+  editor.addEventListener('blur', () => {
     if (editingTaskId) {
-      showDescPreview(textarea.value.trim());
+      showDescPreview(getEditorContent());
     }
   });
 
@@ -51,7 +140,7 @@ export function initTaskModal() {
       if (!task) return;
       form.title.value = task.title;
       form.jiraUrl.value = task.jiraUrl || '';
-      form.description.value = task.description || '';
+      setEditorContent(task.description || '');
       form.priority.value = task.priority;
       form.status.value = task.status;
       form.dueDate.value = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
@@ -60,9 +149,9 @@ export function initTaskModal() {
       addDeleteButton();
     } else {
       form.reset();
-      // New task: show textarea directly
+      setEditorContent('');
       preview.hidden = true;
-      textarea.hidden = false;
+      editor.hidden = false;
 
       if (data.status !== undefined) {
         form.status.value = data.status;
@@ -81,8 +170,9 @@ export function initTaskModal() {
     overlay.hidden = true;
     editingTaskId = null;
     form.reset();
+    setEditorContent('');
     preview.hidden = true;
-    textarea.hidden = false;
+    editor.hidden = false;
     removeDeleteButton();
   }
 
@@ -115,7 +205,7 @@ export function initTaskModal() {
     const data = {
       title,
       jiraUrl: form.jiraUrl.value.trim(),
-      description: form.description.value.trim(),
+      description: getEditorContent(),
       priority: parseInt(form.priority.value),
       status: parseInt(form.status.value),
       dueDate: form.dueDate.value ? new Date(form.dueDate.value).getTime() : null,
@@ -130,7 +220,6 @@ export function initTaskModal() {
     closeModal();
   });
 
-  // Ctrl+Enter to save (works from both textarea and preview)
   form.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key === 'Enter') {
       e.preventDefault();

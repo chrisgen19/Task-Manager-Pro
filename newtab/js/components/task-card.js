@@ -31,7 +31,7 @@ export function createTaskCard(task, options = {}) {
           <span class="card-title">${escapeHtml(task.title)}</span>
           ${jiraLink}
         </div>
-        ${task.description ? `<p class="card-desc">${escapeHtml(task.description).substring(0, 100)}${task.description.length > 100 ? '...' : ''}</p>` : ''}
+        ${task.description ? `<p class="card-desc">${truncateDesc(task.description, 100)}</p>` : ''}
         <div class="card-meta">
           <span class="badge ${PRIORITY_CLASSES[task.priority]}">${PRIORITIES[task.priority]}</span>
           ${dueDateStr ? `<span class="card-due ${isOverdue ? 'overdue' : ''}">${dueDateStr}</span>` : ''}
@@ -73,6 +73,13 @@ function formatDate(timestamp) {
   const month = d.toLocaleString('default', { month: 'short' });
   const day = d.getDate();
   return `${month} ${day}`;
+}
+
+function truncateDesc(html, max) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const text = doc.body.textContent || '';
+  const truncated = text.length > max ? text.substring(0, max) + '...' : text;
+  return escapeHtml(truncated);
 }
 
 function escapeHtml(str) {

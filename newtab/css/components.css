@@ -361,14 +361,35 @@
   min-height: 0;
 }
 
-.form-group-fill textarea,
+.form-group-fill .desc-editor,
 .form-group-fill .desc-preview {
   flex: 1;
   min-height: 120px;
 }
 
-.form-group-fill textarea {
-  resize: none;
+/* Rich text editor (contenteditable) */
+.desc-editor {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: var(--text-primary);
+  overflow-y: auto;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.desc-editor:focus {
+  border-color: var(--status-todo);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.desc-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-tertiary);
+  pointer-events: none;
 }
 
 /* Description preview (read-only mode) */
@@ -392,7 +413,6 @@
   font-size: var(--text-sm);
   line-height: 1.7;
   color: var(--text-primary);
-  white-space: pre-wrap;
   word-wrap: break-word;
 }
 
@@ -412,6 +432,104 @@
   border-radius: var(--radius-sm);
   opacity: 0;
   transition: opacity var(--transition-fast);
+}
+
+/* Rich text content styles (shared by editor and preview) */
+.desc-editor, .desc-preview-text {
+  word-wrap: break-word;
+}
+
+.desc-editor h1, .desc-preview-text h1,
+.desc-editor h2, .desc-preview-text h2,
+.desc-editor h3, .desc-preview-text h3,
+.desc-editor h4, .desc-preview-text h4 {
+  margin: 0.6em 0 0.3em;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.desc-editor h1, .desc-preview-text h1 { font-size: 1.3em; }
+.desc-editor h2, .desc-preview-text h2 { font-size: 1.15em; }
+.desc-editor h3, .desc-preview-text h3 { font-size: 1.05em; }
+.desc-editor h4, .desc-preview-text h4 { font-size: 1em; }
+
+.desc-editor p, .desc-preview-text p {
+  margin: 0.4em 0;
+}
+
+.desc-editor ul, .desc-preview-text ul,
+.desc-editor ol, .desc-preview-text ol {
+  margin: 0.4em 0;
+  padding-left: 1.6em;
+}
+
+.desc-editor li, .desc-preview-text li {
+  margin: 0.15em 0;
+}
+
+.desc-editor a, .desc-preview-text a {
+  color: var(--status-todo);
+  text-decoration: underline;
+}
+
+.desc-editor code, .desc-preview-text code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 1px 5px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.desc-editor pre, .desc-preview-text pre {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+.desc-editor pre code, .desc-preview-text pre code {
+  padding: 0;
+  background: none;
+}
+
+.desc-editor blockquote, .desc-preview-text blockquote {
+  border-left: 3px solid var(--border-secondary);
+  padding-left: var(--space-md);
+  margin: 0.5em 0;
+  color: var(--text-secondary);
+}
+
+.desc-editor table, .desc-preview-text table {
+  border-collapse: collapse;
+  margin: 0.5em 0;
+  font-size: var(--text-sm);
+}
+
+.desc-editor th, .desc-preview-text th,
+.desc-editor td, .desc-preview-text td {
+  border: 1px solid var(--border-primary);
+  padding: var(--space-xs) var(--space-sm);
+  text-align: left;
+}
+
+.desc-editor th, .desc-preview-text th {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+}
+
+.desc-editor hr, .desc-preview-text hr {
+  border: none;
+  border-top: 1px solid var(--border-primary);
+  margin: 0.8em 0;
+}
+
+.desc-editor img, .desc-preview-text img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
 }
 
 .desc-preview:hover .desc-preview-hint {
