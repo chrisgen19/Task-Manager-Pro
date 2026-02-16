@@ -285,9 +285,12 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   width: 100%;
-  max-width: 520px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-width: 860px;
+  height: 80vh;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   animation: slideUp 200ms ease;
 }
 
@@ -322,10 +325,46 @@
 
 .modal-body {
   padding: var(--space-lg);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.form-columns {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: var(--space-lg);
+  flex: 1;
+  min-height: 0;
+}
+
+.form-col-primary {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.form-col-secondary {
+  border-left: 1px solid var(--border-primary);
+  padding-left: var(--space-lg);
 }
 
 .form-group {
   margin-bottom: var(--space-md);
+}
+
+.form-group-fill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.form-group-fill textarea {
+  flex: 1;
+  resize: none;
+  min-height: 120px;
 }
 
 .form-group label {
@@ -361,7 +400,7 @@
   gap: var(--space-sm);
   padding-top: var(--space-md);
   border-top: 1px solid var(--border-primary);
-  margin-top: var(--space-md);
+  flex-shrink: 0;
 }
 
 .modal-footer .btn-delete {
